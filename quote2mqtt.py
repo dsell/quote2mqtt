@@ -10,7 +10,7 @@ __copyright__ = "Copyright (C) Dennis Sell"
 
 
 APPNAME = "quote2mqtt"
-VERSION = "0.10"
+VERSION = "0.11"
 WATCHTOPIC = "/raw/" + APPNAME + "/command"
 
 import subprocess
@@ -29,6 +29,7 @@ class MyMQTTClientCore(MQTTClientCore):
         MQTTClientCore.__init__(self, appname, clienttype)
         self.clientversion = VERSION
         self.watchtopic = WATCHTOPIC
+        self.workingdir = self.cfg.WORKINGDIR
         self.clienttopic = "/clients/" + APPNAME
         self.quotes = []
         self.do_read_quotes()
@@ -39,7 +40,7 @@ class MyMQTTClientCore(MQTTClientCore):
         self.mqttc.subscribe('/raw/clock/day', qos=0)
 
     def do_read_quotes(self):
-        cr = csv.reader(open("quotes.csv","rb"))
+        cr = csv.reader(open(self.workingdir + "quotes.csv","rb"))
         for row in cr:
             new_quote = Quote(row[0], row[1], row[2])
             self.quotes.append(new_quote)
@@ -50,9 +51,10 @@ class MyMQTTClientCore(MQTTClientCore):
 
     def do_quote(self):
         x = random.choice(self.quotes)
-        self.mqttc.publish(self.clienttopic + "/quote", x.quote)
-        self.mqttc.publish(self.clienttopic + "/author", x.author)
-        self.mqttc.publish(self.clienttopic + "/reference", x.reference)
+        self.mqttc.publish(self.clienttopic + "/quote", x.quote, qos=2, retain=True)
+        self.mqttc.publish(self.clienttopic + "/author", x.author, qos=2, retain=True)
+        self.mqttc.publish(self.clienttopic + "/reference", x.reference, qos=2, retain=True)
+        self.mqttc.publish(self.clienttopic + "/full", x.quote + " - " + x.author + " -- " + x.reference, qos=2, retain=True)
 
     def on_message(self, mself, obj, msg):
         MQTTClientCore.on_message(self, mself, obj, msg)

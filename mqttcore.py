@@ -26,7 +26,7 @@ import datetime
 from daemon import daemon_version
 
 
-COREVERSION = 0.4
+COREVERSION = 0.6
 
 
 class MQTTClientCore:
@@ -136,10 +136,12 @@ class MQTTClientCore:
         self.mqttc.publish(self.clientbase + "extip", extip.strip('\n'), qos=1, retain=self.persist)
         self.mqttc.publish(self.clientbase + "pid", os.getpid(), qos=1, retain=self.persist)
         self.mqttc.publish(self.clientbase + "status", "online", qos=1, retain=self.persist)
+        self.mqttc.publish(self.clientbase + "class", self.clienttype, qos=1, retain=self.persist)
         self.mqttc.publish(self.clientbase + "start", str(self.starttime), qos=1, retain=self.persist)
         self.mqttc.publish(self.clientbase + "disconnecttime", str(self.disconnecttime), qos=1, retain=self.persist)
         self.mqttc.publish(self.clientbase + "connecttime", str(self.connecttime), qos=1, retain=self.persist)
         self.mqttc.publish(self.clientbase + "count", self.connectcount, qos=1, retain=self.persist)
+#add broker port connection type?
 
     #define what happens after connection
     def on_connect(self, mself, obj, rc):
@@ -200,7 +202,7 @@ class MQTTClientCore:
                         logging.info("Using password for login")
                         print "Logging in as " + self.username
                         self.mqttc.username_pw_set(self.username)
-                self.mqttc.will_set(self.clientbase, "disconnected", qos=1, retain=self.persist)
+                self.mqttc.will_set(self.clientbase + "/status", "disconnected", qos=1, retain=self.persist)
                 
                 #define the mqtt callbacks
                 self.mqttc.on_message = self.on_message
