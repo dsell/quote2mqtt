@@ -80,7 +80,7 @@ class Quote:
 
 class MyDaemon(Daemon):
     def run(self):
-        mqttcore = MyMQTTClientCore(APPNAME, clienttype="type1")
+        mqttcore = MyMQTTClientCore(APPNAME, clienttype="single")
         mqttcore.main_loop()
 
 
